@@ -1,0 +1,46 @@
+# Produksi di VPS: docker compose -f docker-compose.prod.yml up -d --build
+services:
+  app:
+    build: { context: ., target: app }
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      NODE_ENV: production
+      DATA_DIR: data/db
+    ports:
+      - "127.0.0.1:4000:4000"   # di belakang reverse proxy (Caddy/nginx) yang memasang HTTPS
+    volumes:
+      - ./data/db:/app/data/db
+
+  scheduler:
+    build: { context: ., target: scheduler }
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      NODE_ENV: production
+      DATA_DIR: data/db
+      PLAYWRIGHT_CHANNEL: ""
+      CHROME_PATH: ""
+    ipc: host                   # disarankan Playwright untuk Chromium di container
+    volumes:
+      - ./data/db:/app/data/db
+      - ./data/raw:/app/data/raw
+      - ./data/seed:/app/data/seed
+      - ./backups:/app/backups
+    depends_on:
+      - app
+
+  # Fase PostgreSQL nanti: aktifkan dengan --profile db dan isi DATABASE_URL di .env
+  db:
+    profiles: ["db"]
+    image: postgis/postgis:16-3.4
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: kdkmp
+      POSTGRES_USER: kdkmp
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ganti-password}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:

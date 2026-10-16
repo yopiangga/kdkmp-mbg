@@ -1,0 +1,157 @@
+/* Token warna — gaya "kanvas abu kebiruan + kartu putih bersudut besar" (referensi desain 16 Okt 2026),
+   aksen merah KDKMP dan navy. Seri grafik kategoris memakai palet tervalidasi (skill dataviz). */
+:root {
+  color-scheme: light;
+  --kop: #c9302c;
+  --kop-soft: #f8e1df;
+  --mbg: #0e9e86;
+  --mbg-soft: #d6f0ea;
+  --sim: #6250d6;
+  --sim-soft: #e8e5fa;
+  --good: #0ca30c;
+  --warn: #fab219;
+  --crit: #d03b3b;
+  --crit-soft: rgba(208, 59, 59, 0.09);
+
+  --navy: #1e2535;
+  --on-navy: #ffffff;
+  --dot: #6c9ad2;
+  --dot-soft: #dbe6f4;
+
+  --bg: #e7e9ee;
+  --surface: #ffffff;
+  --surface-2: #f2f3f6;
+  --surface-3: #e3e6eb;
+  --ink: #1b2030;
+  --ink-2: #4b5263;
+  --muted: #7c8494;
+  --line: #e4e7ec;
+  --line-strong: #cbd0d9;
+  --focus: #2a78d6;
+
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --series-other: #a5abb6;
+
+  /* Ramp sekuensial (biru) untuk choropleth, 100 → 650 */
+  --seq-1: #cde2fb;
+  --seq-2: #9ec5f4;
+  --seq-3: #6da7ec;
+  --seq-4: #3987e5;
+  --seq-5: #256abf;
+  --seq-6: #104281;
+  --seq-none: #dfe2e7;
+
+  /* Badge asal data (pil) */
+  --badge-resmi-bg: #1e2535;
+  --badge-resmi-fg: #ffffff;
+  --badge-rilis-bg: #c9302c;
+  --badge-rilis-fg: #ffffff;
+  --badge-estimasi-bg: #e8e5fa;
+  --badge-estimasi-fg: #3f30a8;
+  --badge-indeks-bg: #5a8ccc;
+  --badge-indeks-fg: #ffffff;
+
+  --radius-lg: 32px;
+  --radius: 24px;
+  --radius-sm: 14px;
+  --shadow: 0 1px 2px rgba(27, 32, 48, 0.04), 0 18px 40px -22px rgba(27, 32, 48, 0.28);
+  --shadow-soft: 0 1px 2px rgba(27, 32, 48, 0.05);
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --kop: #e5574a;
+    --kop-soft: #3b201e;
+    --mbg: #22b89d;
+    --mbg-soft: #123a33;
+    --sim: #9085e9;
+    --sim-soft: #2a2550;
+    --crit-soft: rgba(230, 103, 103, 0.12);
+    --navy: #e8ebf1;
+    --on-navy: #141821;
+    --dot: #7fa9de;
+    --dot-soft: #24324a;
+    --bg: #11141a;
+    --surface: #1a1e26;
+    --surface-2: #222731;
+    --surface-3: #2b313d;
+    --ink: #eef0f4;
+    --ink-2: #bac1cc;
+    --muted: #8a93a3;
+    --line: #2b313c;
+    --line-strong: #3d4553;
+    --focus: #6da7ec;
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
+    --series-other: #6a717e;
+    --seq-1: #13304f;
+    --seq-2: #184f95;
+    --seq-3: #256abf;
+    --seq-4: #3987e5;
+    --seq-5: #6da7ec;
+    --seq-6: #b7d3f6;
+    --seq-none: #2b303a;
+    --badge-resmi-bg: #e8ebf1;
+    --badge-resmi-fg: #141821;
+    --badge-rilis-bg: #e5574a;
+    --badge-rilis-fg: #ffffff;
+    --badge-estimasi-bg: #2a2550;
+    --badge-estimasi-fg: #c4bdf5;
+    --badge-indeks-bg: #5a8ccc;
+    --badge-indeks-fg: #ffffff;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 18px 40px -24px rgba(0, 0, 0, 0.6);
+    --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.3);
+  }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --kop: #e5574a;
+  --kop-soft: #3b201e;
+  --mbg: #22b89d;
+  --mbg-soft: #123a33;
+  --sim: #9085e9;
+  --sim-soft: #2a2550;
+  --crit-soft: rgba(230, 103, 103, 0.12);
+  --navy: #e8ebf1;
+  --on-navy: #141821;
+  --dot: #7fa9de;
+  --dot-soft: #24324a;
+  --bg: #11141a;
+  --surface: #1a1e26;
+  --surface-2: #222731;
+  --surface-3: #2b313d;
+  --ink: #eef0f4;
+  --ink-2: #bac1cc;
+  --muted: #8a93a3;
+  --line: #2b313c;
+  --line-strong: #3d4553;
+  --focus: #6da7ec;
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --series-other: #6a717e;
+  --seq-1: #13304f;
+  --seq-2: #184f95;
+  --seq-3: #256abf;
+  --seq-4: #3987e5;
+  --seq-5: #6da7ec;
+  --seq-6: #b7d3f6;
+  --seq-none: #2b303a;
+  --badge-resmi-bg: #e8ebf1;
+  --badge-resmi-fg: #141821;
+  --badge-rilis-bg: #e5574a;
+  --badge-rilis-fg: #ffffff;
+  --badge-estimasi-bg: #2a2550;
+  --badge-estimasi-fg: #c4bdf5;
+  --badge-indeks-bg: #5a8ccc;
+  --badge-indeks-fg: #ffffff;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 18px 40px -24px rgba(0, 0, 0, 0.6);
+  --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.3);
+}

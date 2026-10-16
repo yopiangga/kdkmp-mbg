@@ -1,0 +1,15 @@
+{
+  "name": "collector",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "collect": "node src/run.js",
+    "build-geo": "node scripts/build-geo.js",
+    "test": "node --test \"test/**/*.test.js\""
+  },
+  "dependencies": {
+    "cheerio": "^1.0.0",
+    "playwright-core": "^1.49.1"
+  }
+}

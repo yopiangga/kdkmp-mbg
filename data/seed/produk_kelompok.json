@@ -1,0 +1,16 @@
+[
+  { "pola": "%SPHP%", "kelompok": "program", "prioritas": 10 },
+  { "pola": "%pupuk%", "kelompok": "program", "prioritas": 10 },
+  { "pola": "%LPG%3 kg%", "kelompok": "program", "prioritas": 10 },
+  { "pola": "%minyak goreng%", "kelompok": "sembako", "prioritas": 20 },
+  { "pola": "%beras%", "kelompok": "sembako", "prioritas": 30 },
+  { "pola": "%gula%", "kelompok": "sembako", "prioritas": 20 },
+  { "pola": "%barang lainnya%", "kelompok": "sembako", "prioritas": 20 },
+  { "pola": "%telur%", "kelompok": "segar_protein", "prioritas": 20 },
+  { "pola": "%ayam%", "kelompok": "segar_protein", "prioritas": 20 },
+  { "pola": "%daging%", "kelompok": "segar_protein", "prioritas": 20 },
+  { "pola": "%ikan%", "kelompok": "segar_protein", "prioritas": 20 },
+  { "pola": "%sayur%", "kelompok": "segar_protein", "prioritas": 20 },
+  { "pola": "%buah%", "kelompok": "segar_protein", "prioritas": 20 },
+  { "pola": "%susu%", "kelompok": "segar_protein", "prioritas": 20 }
+]

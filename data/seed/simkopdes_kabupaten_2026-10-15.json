@@ -1,0 +1,12 @@
+{
+  "_catatan": "Snapshot kab/kota yang sudah diketahui (BRIEF Lampiran B). Kab/kota lain diisi collector sub-district di Fase 2.",
+  "tanggal_data": "2026-10-15",
+  "baris": [
+    {
+      "kode": "35.25",
+      "jumlah_koperasi": 356,
+      "nilai_transaksi": 3481280428,
+      "sumber_url": "https://simkopdes.go.id/pers/dashboard/sub-district/245"
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.env
+.DS_Store
+data/raw/
+data/db/
+*.log
+coverage/
+backups/
+konsep/

@@ -1,0 +1,26 @@
+{
+  "name": "kdkmp-mbg-observatorium",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "description": "Observatorium data publik KDKMP × MBG",
+  "workspaces": [
+    "collector",
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "seed": "npm run seed -w backend",
+    "dev": "node scripts/dev.js",
+    "dev:backend": "npm run dev -w backend",
+    "dev:frontend": "npm run dev -w frontend",
+    "build": "npm run build -w frontend",
+    "test": "npm test -w collector && npm test -w backend && npm run typecheck -w frontend",
+    "collect": "npm run collect -w collector --",
+    "schedule": "node collector/src/scheduler/index.js",
+    "backup": "node scripts/backup.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -1,0 +1,45 @@
+services:
+  backend:
+    image: node:20-alpine
+    working_dir: /app
+    command: sh -c "npm install && npm run seed && npm run dev:backend"
+    environment:
+      PORT: 4000
+      DATA_DIR: data/db
+      ADMIN_TOKEN: ${ADMIN_TOKEN:-ganti-dengan-token-acak}
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./:/app
+      - node_modules:/app/node_modules
+
+  frontend:
+    image: node:20-alpine
+    working_dir: /app
+    command: sh -c "npm install && npm run dev -w frontend -- --host 0.0.0.0"
+    environment:
+      API_PROXY: http://backend:4000
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./:/app
+      - node_modules:/app/node_modules
+    depends_on:
+      - backend
+
+  # Fase PostgreSQL nanti: aktifkan dengan `docker compose --profile db up -d`
+  db:
+    profiles: ["db"]
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_DB: kdkmp
+      POSTGRES_USER: kdkmp
+      POSTGRES_PASSWORD: kdkmp
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  node_modules:
+  pgdata:

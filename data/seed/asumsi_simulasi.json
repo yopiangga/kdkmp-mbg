@@ -1,0 +1,8 @@
+[
+  { "kunci": "pagu_mbg", "label": "Pagu BGN APBN 2026", "nilai": 268000000000000, "satuan": "Rp/tahun", "sumber_url": "https://www.kabarbursa.com/otomotif/bgn-pastikan-makan-bergizi-gratis-tetap-jalan-meski-ada-efisiensi", "catatan": "BGN, Mei 2026." },
+  { "kunci": "porsi_bahan_baku", "label": "Porsi dana SPPG untuk bahan baku", "nilai": 0.7, "satuan": "rasio", "sumber_url": "https://ekonomi.bisnis.com/read/20260129/12/1948326/zulhas-klaim-jumlah-penerima-mbg-tembus-60-juta-januari-2026", "catatan": "Komposisi 70% bahan baku, 20% operasional, 10% insentif (BGN)." },
+  { "kunci": "biaya_per_porsi", "label": "Biaya rata-rata per porsi", "nilai": 15000, "satuan": "Rp/porsi", "sumber_url": "https://www.idxchannel.com/economics/bgn-tegaskan-sppg-tak-ambil-untung-rp18-miliar-per-tahun-dari-mbg-begini-penjelasannya", "catatan": "Juknis BGN 401.1/2025." },
+  { "kunci": "porsi_koperasi_lokal", "label": "Bahan baku yang dibeli dari koperasi lokal", "nilai": 0.4, "satuan": "rasio", "sumber_url": null, "catatan": "Nilai tengah dari preset 20/40/75% prototipe Jejaring. Skenario, bukan target resmi." },
+  { "kunci": "pendapatan_per_petani", "label": "Pendapatan per petani/UMKM pemasok", "nilai": 28000000, "satuan": "Rp/orang/tahun", "sumber_url": null, "catatan": "Dari prototipe Jejaring; belum ada sumber. Dipakai untuk membagi serapan menjadi jumlah orang terlibat." },
+  { "kunci": "efek_pengganda", "label": "Efek pengganda ekonomi desa", "nilai": 1.7, "satuan": "kali", "sumber_url": null, "catatan": "Dari prototipe Jejaring; belum ada sumber." }
+]
