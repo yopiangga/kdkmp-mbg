@@ -181,13 +181,13 @@ function WilayahPerhatian({ m }: { m: Matriks }) {
   );
 }
 
-// ---------------------------------------------------------------- kabupaten pilot
+// ---------------------------------------------------------------- kabupaten dengan profil koperasi (microsite)
 function KabupatenPilot({ data }: { data: Pilot[] }) {
   const tampil = data.filter((d) => d.profil > 0).slice(0, 3);
   return (
     <section aria-labelledby="judul-pilot">
       <div className="section-head">
-        <h2 className="section-title" id="judul-pilot">Kabupaten pilot</h2>
+        <h2 className="section-title" id="judul-pilot">Kabupaten dengan profil koperasi</h2>
         <Link to="/wilayah/33/33.05" className="link-underline">Lihat peta</Link>
       </div>
       <div className="grid" style={{ gap: 12 }}>
@@ -197,7 +197,7 @@ function KabupatenPilot({ data }: { data: Pilot[] }) {
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
                 <strong style={{ fontWeight: 600 }}>{p.nama.replace(/^Kabupaten /, 'Kab. ')}</strong>
-                <span className={`badge ${p.prioritas ? 'badge-rilis' : 'badge-indeks'}`}>{p.prioritas ? 'Prioritas' : 'Pilot'}</span>
+                <span className={`badge ${p.prioritas ? 'badge-rilis' : 'badge-indeks'}`}>{p.prioritas ? 'Prioritas' : 'Profil lengkap'}</span>
               </div>
               <div className="ink-2 small">{angka(p.profil)} koperasi · {angka(p.anggota)} anggota</div>
             </div>
@@ -206,7 +206,7 @@ function KabupatenPilot({ data }: { data: Pilot[] }) {
         ))}
       </div>
       <p className="xs muted" style={{ margin: '10px 4px 0' }}>
-        {data.length} kabupaten pilot · {angka(data.reduce((s, d) => s + d.profil, 0))} profil koperasi dari microsite Simkopdes <BadgeAsal asal="Resmi" />
+        {data.length} kabupaten · {angka(data.reduce((s, d) => s + d.profil, 0))} profil koperasi dari microsite Simkopdes <BadgeAsal asal="Resmi" />
       </p>
     </section>
   );
@@ -283,7 +283,14 @@ export function Ringkasan() {
 
       <section className="section" aria-labelledby="judul-temuan">
         <div className="section-head">
-          <h2 className="section-title" id="judul-temuan">Temuan minggu ini</h2>
+          <div>
+            <h2 className="section-title" id="judul-temuan">{r.pembanding ? 'Temuan minggu ini' : 'Temuan dari data terbaru'}</h2>
+            <p className="small muted" style={{ margin: 0 }}>
+              {r.pembanding
+                ? `Dihitung otomatis dari snapshot ${tanggal(r.tanggal_data)}, dibanding ${tanggal(r.pembanding)}.`
+                : `Dihitung otomatis dari snapshot ${tanggal(r.tanggal_data)}. Perubahan mingguan muncul setelah riwayat 7 hari terkumpul.`}
+            </p>
+          </div>
           <Link to="/tentang" className="link-underline">Metodologi</Link>
         </div>
         <div className="grid grid-3" style={{ gap: 20 }}>

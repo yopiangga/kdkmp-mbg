@@ -56,7 +56,7 @@ export function Simulasi() {
   return (
     <>
       <PageHead
-        eyebrow="Lapis 3 · Simulasi · Potensi ekonomi"
+        eyebrow="Simulasi · Potensi ekonomi"
         title={`Jika ${pct}% bahan baku MBG dibeli dari koperasi lokal, serapannya ${rupiahSingkat(serapan)} per tahun`}
         lede="Ubah asumsi untuk melihat skala potensi. Semua keluaran adalah estimasi dari asumsi yang dicantumkan di bawah, bukan realisasi."
       />

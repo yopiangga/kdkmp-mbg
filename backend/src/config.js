@@ -20,6 +20,9 @@ export const config = {
   dataDir: path.resolve(ROOT, process.env.DATA_DIR || 'data/db'),
   seedDir: path.join(ROOT, 'data/seed'),
   adminToken: process.env.ADMIN_TOKEN || '',
+  // Password situs; kosong = tanpa gerbang password.
+  sitePassword: process.env.SITE_PASSWORD || '',
+  sessionSecret: process.env.SESSION_SECRET || '',
   cacheSeconds: Number(process.env.CACHE_SECONDS ?? (isProd ? 3600 : 0)),
   // Produksi: backend juga menyajikan hasil build frontend.
   staticDir: process.env.STATIC_DIR ? path.resolve(ROOT, process.env.STATIC_DIR) : isProd ? path.join(ROOT, 'frontend/dist') : null,

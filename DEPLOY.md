@@ -1,5 +1,38 @@
 # Deploy ke VPS (Docker)
 
+## Instalasi yang berjalan (16 Okt 2026)
+
+| | |
+|---|---|
+| Web | https://kdkmp.kameranusantara.id |
+| API | https://api-kdkmp.kameranusantara.id/api/… (akar dialihkan ke `/tentang`) |
+| Server | VPS Ubuntu 22.04 bersama aplikasi lain (karhutla, live, unras, …) |
+| Folder | `/opt/kdkmp-mbg` (proyek Docker `kdkmp-mbg`) |
+| Port aplikasi | `127.0.0.1:4310` (`APP_PORT` di `.env`) |
+| nginx | `/etc/nginx/sites-available/{kdkmp,api-kdkmp}.kameranusantara.id`, sertifikat Let's Encrypt via certbot (perpanjang otomatis) |
+| Token admin | baris `ADMIN_TOKEN` di `/opt/kdkmp-mbg/.env` (hanya di server) |
+| Password dasbor | `SITE_PASSWORD` di `.env` server (sejak 16 Okt 2026); API juga terkunci kecuali `/api/health` |
+
+Pembaruan dari mesin pengembang:
+
+```bash
+# 1. Cadangkan data hidup di server
+ssh root@<server> 'cd /opt/kdkmp-mbg && tar -czf backups/pra-deploy-$(date +%Y%m%d-%H%M).tar.gz -C data db'
+# 2. Folder kode disinkronkan dengan --delete supaya file yang dihapus di lokal ikut hilang
+#    (file lama yang tertinggal bisa menggagalkan build, mis. halaman yang sudah dihapus)
+for d in frontend backend collector scripts data/seed; do
+  rsync -az --delete --exclude node_modules --exclude dist ./$d/ root@<server>:/opt/kdkmp-mbg/$d/
+done
+# 3. Berkas di root (tanpa --delete; .env, data/db, data/raw, backups tidak disentuh)
+rsync -az --exclude node_modules --exclude frontend/dist --exclude data/raw --exclude data/db --exclude .env --exclude backups ./ root@<server>:/opt/kdkmp-mbg/
+# 4. Build ulang
+ssh root@<server> 'cd /opt/kdkmp-mbg && docker compose -f docker-compose.prod.yml up -d --build'
+```
+
+Bila build gagal, container lama tetap berjalan; perbaiki lalu ulangi langkah 4.
+
+`data/db` di server adalah data hidup (diisi penjadwal), jadi jangan ditimpa dari mesin lokal.
+
 Panduan memasang Observatorium KDKMP × MBG di VPS Linux dengan Docker, misalnya AWS Lightsail (yang sudah menjalankan n8n) atau Biznet Gio. Shared hosting tidak bisa dipakai karena collector butuh Chromium (Playwright).
 
 Ada dua container:
@@ -31,6 +64,7 @@ Isi minimal di `.env`:
 |---|---|
 | `CONTACT_EMAIL` | Email yang boleh dihubungi pengelola situs sumber. Tanpa ini semua job jaringan menolak jalan. |
 | `ADMIN_TOKEN` | Token acak panjang untuk `/admin` dan `POST /api/admin/*`. Buat dengan `openssl rand -hex 32`. |
+| `SITE_PASSWORD` | Password untuk membuka dasbor dan seluruh `/api` (kecuali `/api/health`). Kosongkan untuk situs terbuka. Cookie sesi berlaku 30 hari. |
 | `N8N_WEBHOOK_URL` | URL webhook n8n untuk notifikasi kegagalan (lihat bagian 6). |
 | `PLAYWRIGHT_CHANNEL`, `CHROME_PATH` | Biarkan kosong. Image `scheduler` sudah membawa Chromium. |
 

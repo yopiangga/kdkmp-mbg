@@ -87,7 +87,7 @@ export function publicRoutes({ repo, seedDir }) {
   r.get('/wilayah-berdata/kabupaten', (_req, res) => {
     const kec = new Set(repo.store.all('kdkmp_snapshot').filter((s) => s.status === 'ok' && s.kode.length === 8).map((s) => s.kode.slice(0, 5)));
     const data = [...kec].map((k) => repo.wilayah(k)).filter(Boolean)
-      .map((w) => ({ kode: w.kode, nama: w.nama, provinsi: repo.wilayah(w.parent_kode)?.nama ?? null }))
+      .map((w) => ({ kode: w.kode, nama: w.nama, provinsi_kode: w.parent_kode, provinsi: repo.wilayah(w.parent_kode)?.nama ?? null }))
       .sort((a, b) => a.kode.localeCompare(b.kode));
     res.json({ data, meta: meta({ tanggal_data: repo.tanggalTerakhir('ID'), sumber: ['simkopdes'], label_asal: 'Resmi' }) });
   });

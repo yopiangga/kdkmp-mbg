@@ -143,3 +143,23 @@ test('matriks kab/kota nonaktif: sumber tidak memuat gerai per kab/kota', () => 
   assert.equal(m.aktif, false);
   assert.match(m.alasan, /tidak menampilkan persentase pembangunan gerai/);
 });
+
+test('temuan: tanpa riwayat 7 hari tidak ada pembanding', () => {
+  const r = obs.ringkasan(repo);
+  assert.equal(r.pembanding, null);
+  assert.ok(!r.temuan.some((t) => t.kunci === 'perubahan_mingguan'));
+});
+
+test('temuan: dengan snapshot ≥ 7 hari sebelumnya muncul perubahan mingguan', () => {
+  const { store: s2 } = seededDir();
+  const r2 = createRepo(s2);
+  const nas = r2.snapshot('ID', '2026-10-15');
+  s2.upsert('kdkmp_snapshot', [{ ...nas, tanggal_data: '2026-10-08', gerai_selesai: 28000, jumlah_koperasi: 83000, nilai_transaksi: 200_000_000_000 }]);
+  const r = obs.ringkasan(r2, { tanggal: '2026-10-15' });
+  assert.equal(r.pembanding, '2026-10-08');
+  assert.equal(r.temuan[0].kunci, 'perubahan_mingguan');
+  assert.equal(r.temuan[0].judul, 'Gerai selesai bertambah 330 sejak 8 Okt 2026');
+  assert.match(r.temuan[0].isi, /koperasi berbadan hukum bertambah 363/);
+  assert.match(r.temuan[0].isi, /nilai transaksi bertambah Rp8,6 M/);
+  assert.equal(r.temuan.length, 4);
+});

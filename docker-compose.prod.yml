@@ -1,4 +1,6 @@
 # Produksi di VPS: docker compose -f docker-compose.prod.yml up -d --build
+name: kdkmp-mbg
+
 services:
   app:
     build: { context: ., target: app }
@@ -8,7 +10,7 @@ services:
       NODE_ENV: production
       DATA_DIR: data/db
     ports:
-      - "127.0.0.1:4000:4000"   # di belakang reverse proxy (Caddy/nginx) yang memasang HTTPS
+      - "127.0.0.1:${APP_PORT:-4000}:4000"   # di belakang reverse proxy (Caddy/nginx) yang memasang HTTPS
     volumes:
       - ./data/db:/app/data/db
 

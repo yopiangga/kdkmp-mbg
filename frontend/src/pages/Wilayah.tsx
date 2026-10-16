@@ -82,7 +82,7 @@ export function Wilayah() {
   return (
     <>
       <PageHead
-        eyebrow="Lapis 1 · Fakta · Wilayah"
+        eyebrow="Wilayah"
         title={judul}
         lede={`Peta dan peringkat ${LEVEL_LABEL[level ?? ''] ?? 'wilayah'} menurut Indeks Kesiapan Operasional. Klik wilayah untuk turun level.`}
       />

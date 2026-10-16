@@ -180,8 +180,33 @@ export function ringkasan(repo, { tanggal } = {}) {
     tautan: '/gap/fisik-usaha',
   });
 
+  // Perubahan mingguan: hanya bila ada snapshot nasional yang berumur ≥ 7 hari sebagai pembanding.
+  if (prev) {
+    const ubah = (f) => (nas[f] !== null && nas[f] !== undefined && prev[f] !== null && prev[f] !== undefined ? nas[f] - prev[f] : null);
+    const dGerai = ubah('gerai_selesai');
+    const dKop = ubah('jumlah_koperasi');
+    const dTrx = ubah('nilai_transaksi');
+    const naik = (n, f = fmt.angka) => (n === null ? null : n === 0 ? 'tetap' : `${n > 0 ? 'bertambah' : 'berkurang'} ${f(Math.abs(n))}`);
+    const bagian = [
+      dKop !== null && `koperasi berbadan hukum ${naik(dKop)}`,
+      dTrx !== null && `nilai transaksi ${naik(dTrx, fmt.rupiahSingkat)}`,
+    ].filter(Boolean);
+    if (dGerai !== null || bagian.length) {
+      temuan.unshift({
+        kunci: 'perubahan_mingguan',
+        judul: dGerai !== null ? `Gerai selesai ${naik(dGerai)} sejak ${fmt.tanggal(prev.tanggal_data)}` : `Perubahan sejak ${fmt.tanggal(prev.tanggal_data)}`,
+        isi: bagian.length ? `Dalam periode yang sama, ${bagian.join(', dan ')}.` : 'Dibanding snapshot sebelumnya.',
+        nilai: dGerai ?? dKop ?? dTrx,
+        label_asal: 'Resmi',
+        tanggal: t,
+        tautan: '/wilayah',
+      });
+    }
+  }
+
   return {
     tanggal_data: t,
+    pembanding: prev ? prev.tanggal_data : null,
     judul: `${fmt.angka(nas.gerai_selesai)} gerai sudah berdiri, tetapi rata-rata koperasi baru bertransaksi ${fmt.rupiahSingkat(trxPerKop)} sepanjang ${tahun}.`,
     kpi: kpis,
     funnel,
@@ -412,6 +437,9 @@ const jarakKm = ([lng1, lat1], [lng2, lat2]) => {
   return 2 * R * Math.asin(Math.sqrt(a));
 };
 
+/** Jumlah kota survei terdekat yang ditampilkan sebagai pembanding harga. */
+export const KOTA_TERDEKAT = 3;
+
 const URUT_KOMODITAS = ['Beras', 'Daging Ayam', 'Daging Sapi', 'Telur Ayam', 'Bawang Merah', 'Bawang Putih', 'Cabai Merah', 'Cabai Rawit', 'Minyak Goreng', 'Gula Pasir'];
 
 function ringkasHarga(rows) {
@@ -443,19 +471,24 @@ export function hargaWilayah(repo, kode) {
       if (cakupan === 'tidak_ada') cakupan = 'pendekatan';
     }
   }
+  // Kota survei terdekat (lintas provinsi) selalu ditampilkan sebagai pembanding, termasuk untuk kota survei itu sendiri.
   const kodeKab = w.level === 'kabupaten' ? w.kode : w.level === 'kecamatan' ? w.parent_kode : null;
-  if (!langsung.length && kodeKab) {
+  if (kodeKab) {
     const asal = repo.wilayah(kodeKab)?.centroid;
     const survei = repo.kodeDenganHarga()
-      .filter((k) => k.length === 5 && k.startsWith(`${kodeProv}.`) && k !== kodeKab)
+      .filter((k) => k.length === 5 && k !== kodeKab)
       .map((k) => ({ k, w: repo.wilayah(k) }))
       .filter((x) => x.w?.centroid && asal)
       .map((x) => ({ ...x, jarak: jarakKm(asal, x.w.centroid) }))
       .sort((a, b) => a.jarak - b.jarak)
-      .slice(0, 2);
+      .slice(0, KOTA_TERDEKAT);
     for (const x of survei) {
-      kolom.push({ kode: x.k, nama: x.w.nama, peran: 'kota_survei_terdekat', jarak_km: Math.round(x.jarak), harga: ringkasHarga(repo.hargaTerbaru(x.k)) });
+      kolom.push({
+        kode: x.k, nama: x.w.nama, peran: 'kota_survei_terdekat', jarak_km: Math.round(x.jarak),
+        provinsi: repo.wilayah(x.w.parent_kode)?.nama ?? null, harga: ringkasHarga(repo.hargaTerbaru(x.k)),
+      });
     }
+    if (cakupan === 'tidak_ada' && survei.length) cakupan = 'pendekatan';
   }
   const tanggal = kolom.flatMap((c) => c.harga.map((h) => h.tanggal_data)).sort().at(-1) ?? null;
   return {
@@ -466,7 +499,7 @@ export function hargaWilayah(repo, kode) {
     komoditas: URUT_KOMODITAS.filter((k) => kolom.some((c) => c.harga.some((h) => h.komoditas === k))),
     kolom,
     catatan: cakupan === 'pendekatan'
-      ? `${w.nama} bukan kota survei PIHPS; ditampilkan harga provinsi dan kota survei terdekat sebagai pendekatan.`
+      ? `${w.nama} bukan kota survei PIHPS; ditampilkan ${kolom.some((c) => c.peran === 'provinsi') ? 'harga provinsi dan ' : ''}${kolom.filter((c) => c.peran === 'kota_survei_terdekat').length} kota survei terdekat sebagai pendekatan.`
       : cakupan === 'tidak_ada' ? 'Belum ada data harga PIHPS untuk wilayah ini atau provinsinya.' : null,
   };
 }

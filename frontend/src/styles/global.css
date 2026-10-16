@@ -102,10 +102,40 @@ select {
 }
 
 .brand-mark span {
-  width: 14px;
+  /* Prisma: segitiga putih dengan sisi kanan sedikit redup (penanda brand prisma yang halus). */
+  width: 16px;
   height: 14px;
-  border-radius: 4px;
-  background: #fff;
+  margin-top: -1px;
+  background: linear-gradient(105deg, #fff 0 52%, rgba(255, 255, 255, 0.72) 52% 100%);
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+
+.footer-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.prisma-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  opacity: 0.75;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.prisma-mark::before {
+  content: '';
+  width: 9px;
+  height: 8px;
+  background: currentColor;
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
 }
 
 .brand-title {

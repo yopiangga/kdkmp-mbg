@@ -28,25 +28,29 @@ test('nama PIHPS ("Kota Surakarta (Solo)", spasi di akhir) cocok ke kode Kemenda
   assert.deepEqual(repo.kodeDenganHarga().sort(), ['33', '33.01', '33.02', '33.09', '33.72']);
 });
 
-test('kota survei memakai harganya sendiri', () => {
+test('kota survei memakai harganya sendiri, ditambah kota survei terdekat', () => {
   const h = hargaWilayah(repo, '33.02');
   assert.equal(h.cakupan, 'kota_survei');
   assert.equal(h.kolom[0].peran, 'wilayah');
+  assert.deepEqual(h.kolom.map((c) => c.peran), ['wilayah', 'provinsi', 'kota_survei_terdekat', 'kota_survei_terdekat', 'kota_survei_terdekat']);
+  assert.ok(!h.kolom.slice(2).some((c) => c.kode === '33.02'));
   assert.equal(h.kolom[0].harga.find((x) => x.komoditas === 'Beras').harga, 15850);
 });
 
-test('Kebumen (bukan kota survei): provinsi + dua kota survei terdekat', () => {
+test('Kebumen (bukan kota survei): provinsi + tiga kota survei terdekat', () => {
   const h = hargaWilayah(repo, '33.05');
   assert.equal(h.cakupan, 'pendekatan');
-  assert.deepEqual(h.kolom.map((c) => c.peran), ['provinsi', 'kota_survei_terdekat', 'kota_survei_terdekat']);
-  assert.equal(h.kolom[1].kode, '33.02'); // Banyumas lebih dekat dari Cilacap
-  assert.ok(h.kolom[1].jarak_km < h.kolom[2].jarak_km);
+  assert.deepEqual(h.kolom.map((c) => c.peran), ['provinsi', 'kota_survei_terdekat', 'kota_survei_terdekat', 'kota_survei_terdekat']);
+  assert.equal(h.kolom[1].kode, '33.02'); // Banyumas paling dekat
+  assert.ok(h.kolom[1].jarak_km < h.kolom[2].jarak_km && h.kolom[2].jarak_km < h.kolom[3].jarak_km);
   assert.match(h.catatan, /bukan kota survei PIHPS/);
   assert.equal(h.komoditas[0], 'Beras');
 });
 
-test('wilayah tanpa data harga di provinsinya', () => {
+test('wilayah tanpa harga di provinsinya tetap mendapat kota survei terdekat lintas provinsi', () => {
   const h = hargaWilayah(repo, '35.25');
-  assert.equal(h.cakupan, 'tidak_ada');
-  assert.equal(h.kolom.length, 0);
+  assert.equal(h.cakupan, 'pendekatan');
+  assert.match(h.catatan, /bukan kota survei PIHPS; ditampilkan 3 kota survei terdekat/);
+  assert.ok(h.kolom.length > 0 && h.kolom.every((c) => c.peran === 'kota_survei_terdekat'));
+  assert.ok(h.kolom.every((c) => c.provinsi === 'Jawa Tengah'));
 });

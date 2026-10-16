@@ -34,7 +34,7 @@ data/raw/    respons mentah per sumber per tanggal (di-gitignore)
 | 1 Data model & seed | Selesai, versi JSON. Migrasi PostgreSQL menyusul |
 | 2 Collector | Selesai: wilayah, dasbor nasional/provinsi/kabupaten (Playwright), Coop Trade, microsite kab pilot Kebumen (prioritas), Gresik, Kota Surabaya, Kab. Bangka, deteksi blokir, `impor-raw` |
 | 3 API backend | Selesai |
-| 4–6 Frontend | Selesai: 1.1, 1.2, 2.1–2.4, 3.1, Tentang data, admin |
+| 4–6 Frontend | Selesai: Ringkasan, Wilayah, Gap (Fisik vs usaha, Usaha & celah MBG, Ekosistem), Simulasi, Tentang data, admin. Halaman "Permintaan vs kesiapan" dihapus atas permintaan pemilik proyek (endpoint `/api/permintaan` tetap ada untuk dipakai lagi bila data SPPG per provinsi tersedia) |
 | 7 Jadwal & deploy | Selesai: penjadwal (`npm run schedule -- --list`), webhook n8n, backup harian, `Dockerfile` + `docker-compose.prod.yml`, [DEPLOY.md](DEPLOY.md). Build image belum diuji di mesin ini |
 
 ## Pindah ke PostgreSQL nanti

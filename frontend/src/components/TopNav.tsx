@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { CalendarDays, Moon, Search, Sun } from 'lucide-react';
+import { CalendarDays, LogOut, Moon, Search, Sun } from 'lucide-react';
 import { apiGet } from '../lib/api';
 import { useTema } from '../lib/theme';
 import { tanggal } from '../lib/format';
@@ -16,7 +16,6 @@ const NAV = [
 const SUB_GAP = [
   { to: '/gap/fisik-usaha', label: 'Fisik vs usaha' },
   { to: '/gap/usaha-mbg', label: 'Usaha & celah MBG' },
-  { to: '/gap/permintaan', label: 'Permintaan vs kesiapan' },
   { to: '/gap/ekosistem', label: 'Ekosistem' },
 ];
 
@@ -118,7 +117,7 @@ function CariWilayah() {
   );
 }
 
-export function TopNav({ tanggalData }: { tanggalData: string | null }) {
+export function TopNav({ tanggalData, onKeluar }: { tanggalData: string | null; onKeluar?: () => void }) {
   const { pathname } = useLocation();
   const { tema, setTema } = useTema();
   const diGap = pathname.startsWith('/gap');
@@ -147,10 +146,15 @@ export function TopNav({ tanggalData }: { tanggalData: string | null }) {
           <button type="button" className="icon-btn" onClick={() => setTema(tema === 'dark' ? 'light' : 'dark')} aria-label={tema === 'dark' ? 'Gunakan mode terang' : 'Gunakan mode gelap'}>
             {tema === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
           </button>
+          {onKeluar && (
+            <button type="button" className="icon-btn" onClick={onKeluar} aria-label="Keluar" title="Keluar">
+              <LogOut size={18} />
+            </button>
+          )}
         </div>
       </header>
       {diGap && (
-        <nav className="sub-row" aria-label="Halaman lapis Gap">
+        <nav className="sub-row" aria-label="Halaman Gap">
           {SUB_GAP.map((s) => (
             <NavLink key={s.to} to={s.to} className={({ isActive }) => `sub-tab ${isActive ? 'active' : ''}`}>
               {s.label}

@@ -91,7 +91,7 @@ export function FisikUsaha() {
   return (
     <>
       <PageHead
-        eyebrow="Lapis 2 · Gap · Fisik vs usaha"
+        eyebrow="Gap · Fisik vs usaha"
         title={j ? `${j.gedung_siap_usaha_belum} provinsi punya gedung siap, tetapi transaksinya rendah relatif terhadap kesiapan fisik` : 'Matriks fisik vs usaha'}
         lede="Setiap titik adalah satu wilayah: sumbu X menunjukkan kemajuan pembangunan gerai, sumbu Y transaksi rata-rata per koperasi sepanjang 2026 (skala log). Ambang bisa diatur."
       />

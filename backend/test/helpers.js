@@ -12,9 +12,9 @@ export function seededDir() {
   return { dir, store };
 }
 
-export async function startApp({ adminToken = 'rahasia-uji' } = {}) {
+export async function startApp({ adminToken = 'rahasia-uji', sitePassword = '' } = {}) {
   const { dir } = seededDir();
-  const { app, repo } = createApp({ dataDir: dir, seedDir: config.seedDir, adminToken, cacheSeconds: 3600 });
+  const { app, repo } = createApp({ dataDir: dir, seedDir: config.seedDir, adminToken, cacheSeconds: 3600, sitePassword });
   const server = await new Promise((resolve) => {
     const s = app.listen(0, () => resolve(s));
   });

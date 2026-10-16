@@ -71,7 +71,7 @@ export function Ekosistem() {
   return (
     <>
       <PageHead
-        eyebrow="Lapis 2 · Gap · Ekosistem"
+        eyebrow="Gap · Ekosistem"
         title={`${EDGES.filter((e) => e.ketersediaan === 'tertutup').length} dari ${EDGES.length} alur belum punya data publik, termasuk dana dan pasokan ke dapur MBG`}
         lede="Graf 16 entitas yang membentuk ekosistem koperasi desa dan MBG. Ganti mode untuk melihat jenis alur atau seberapa terbuka datanya. Klik entitas untuk melihat perannya."
       />

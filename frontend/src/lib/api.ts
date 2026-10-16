@@ -46,6 +46,8 @@ export interface Temuan {
 
 export interface Ringkasan {
   tanggal_data: string;
+  /** Tanggal snapshot pembanding (≥ 7 hari sebelumnya), null bila belum ada riwayat seminggu. */
+  pembanding: string | null;
   judul: string;
   kpi: Kpi[];
   funnel: FunnelStage[];
@@ -193,12 +195,6 @@ export interface Celah {
   };
 }
 
-export interface Permintaan {
-  aktif: boolean;
-  cakupan: { ada: number; total: number };
-  alasan: string | null;
-  titik: { kode: string; nama: string; sppg: number; penerima: number | null; indeks: number | null }[];
-}
 
 export interface Asumsi {
   kunci: string;
@@ -251,9 +247,13 @@ export class ApiError extends Error {
 
 const BASE = (import.meta.env.VITE_API_BASE as string | undefined) ?? '';
 
+/** Dipancarkan saat server meminta password (sesi habis atau belum masuk). */
+export const EVENT_PERLU_MASUK = 'kdkmp:perlu-masuk';
+
 export async function apiGet<T>(path: string): Promise<T> {
-  const res = await fetch(`${BASE}${path}`);
+  const res = await fetch(`${BASE}${path}`, { credentials: 'include' });
   const body = await res.json().catch(() => ({}));
+  if (res.status === 401 && body.perlu_masuk) window.dispatchEvent(new Event(EVENT_PERLU_MASUK));
   if (!res.ok) throw new ApiError(typeof body.error === 'string' ? body.error : `HTTP ${res.status}`, res.status);
   return body as T;
 }
@@ -261,6 +261,7 @@ export async function apiGet<T>(path: string): Promise<T> {
 export async function apiSend<T>(method: 'POST' | 'PATCH', path: string, token: string, body: unknown, contentType = 'application/json'): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
     method,
+    credentials: 'include',
     headers: { Authorization: `Bearer ${token}`, 'Content-Type': contentType },
     body: contentType === 'application/json' ? JSON.stringify(body) : (body as string),
   });
@@ -279,6 +280,7 @@ export interface HargaKolom {
   nama: string;
   peran: 'wilayah' | 'provinsi' | 'kota_survei_terdekat';
   jarak_km?: number;
+  provinsi?: string | null;
   harga: { komoditas: string; satuan: string; harga: number; rata_rata_7_hari: number | null; tanggal_data: string }[];
 }
 

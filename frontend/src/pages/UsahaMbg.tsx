@@ -1,4 +1,5 @@
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import type { Celah, Harga, Komposisi, Resp } from '../lib/api';
 import { useApi } from '../lib/useApi';
 import { angka, persen, rupiah, rupiahSingkat, tanggal } from '../lib/format';
@@ -16,32 +17,47 @@ interface Segmen {
   warna: (p: Palet) => string;
 }
 
+interface KabBerdata {
+  kode: string;
+  nama: string;
+  provinsi_kode: string;
+  provinsi: string | null;
+}
+
+const WILAYAH_BAWAAN = '33.05'; // Kebumen: wilayah prioritas
+// Kabupaten pilot (urut prioritas) dipilih lebih dulu untuk tabel kecamatan bila pengguna memilih provinsi/nasional.
+const PILOT = ['33.05', '35.25', '35.78', '19.01', '33.02', '33.01', '33.06', '33.04'];
+
 export function UsahaMbg() {
-  const [kodeKomp, setKodeKomp] = useState('ID');
-  const komp = useApi<Resp<Komposisi>>(`/api/usaha/komposisi?kode=${kodeKomp}`);
-  const daftarKomp = useApi<Resp<{ kode: string; nama: string; level: string; provinsi: string | null }[]>>('/api/usaha/wilayah');
-  const grupKomp = (() => {
-    const list = daftarKomp.data?.data ?? [{ kode: 'ID', nama: 'Indonesia', level: 'nasional', provinsi: null }];
-    const grup: [string, { kode: string; nama: string }[]][] = [
-      ['Nasional', list.filter((w) => w.level === 'nasional').map((w) => ({ kode: w.kode, nama: 'Nasional' }))],
-      ['Provinsi', list.filter((w) => w.level === 'provinsi')],
-    ];
-    const kab = list.filter((w) => w.level === 'kabupaten');
-    for (const prov of [...new Set(kab.map((w) => w.provinsi ?? 'Lainnya'))]) {
-      grup.push([`Kab/kota · ${prov}`, kab.filter((w) => (w.provinsi ?? 'Lainnya') === prov)]);
-    }
-    return grup.filter(([, l]) => l.length);
-  })();
-  const [kabPilihan, setKab] = useState('33.05'); // Kebumen: wilayah prioritas
-  const kabList = useApi<Resp<{ kode: string; nama: string; provinsi: string | null }[]>>('/api/wilayah-berdata/kabupaten');
-  const tersedia = kabList.data?.data ?? [];
-  const kab = !tersedia.length || tersedia.some((k) => k.kode === kabPilihan) ? kabPilihan : tersedia.find((k) => k.kode === '35.25')?.kode ?? tersedia[0].kode;
-  const kabGrup = Object.entries(
-    (kabList.data?.data ?? [{ kode: '35.25', nama: 'Kabupaten Gresik', provinsi: 'Jawa Timur' }]).reduce<Record<string, { kode: string; nama: string }[]>>((acc, k) => {
-      (acc[k.provinsi ?? 'Lainnya'] ??= []).push(k);
-      return acc;
-    }, {}),
-  );
+  // Filter atas: Nasional/provinsi (komposisi, produk terlaris). Filter kab/kota: harga pangan & celah per kecamatan.
+  // Keduanya disimpan di URL agar tautan bisa dibagikan. Tautan lama ?wilayah=<kab> dipecah jadi provinsi + kab.
+  const [params, setParams] = useSearchParams();
+  const wilayahParam = params.get('wilayah') || WILAYAH_BAWAAN.slice(0, 2);
+  const wilayah = wilayahParam === 'ID' ? 'ID' : wilayahParam.slice(0, 2);
+  const kabParam = params.get('kab') || (wilayahParam.length > 2 ? wilayahParam : null);
+  const pilihWilayah = (kode: string) => setParams((p) => {
+    p.set('wilayah', kode);
+    p.delete('kab');
+    return p;
+  }, { replace: true });
+  const pilihKab = (kode: string) => setParams((p) => {
+    p.set('wilayah', wilayah);
+    p.set('kab', kode);
+    return p;
+  }, { replace: true });
+
+  const kabList = useApi<Resp<KabBerdata[]>>('/api/wilayah-berdata/kabupaten');
+  const semuaKab = kabList.data?.data ?? [];
+  const provinsi = [...new Map(semuaKab.map((k) => [k.provinsi_kode, k.provinsi ?? k.provinsi_kode])).entries()]
+    .map(([kode, nama]) => ({ kode, nama }))
+    .sort((a, b) => a.kode.localeCompare(b.kode));
+  const kabDalamCakupan = wilayah === 'ID' ? semuaKab : semuaKab.filter((k) => k.provinsi_kode === wilayah);
+  const kab = kabParam && kabDalamCakupan.some((k) => k.kode === kabParam)
+    ? kabParam
+    : PILOT.find((kode) => kabDalamCakupan.some((k) => k.kode === kode)) ?? kabDalamCakupan[0]?.kode ?? WILAYAH_BAWAAN;
+  const namaKab = semuaKab.find((k) => k.kode === kab)?.nama ?? kab;
+
+  const komp = useApi<Resp<Komposisi>>(`/api/usaha/komposisi?kode=${wilayah}`);
   const celah = useApi<Resp<Celah>>(`/api/celah-mbg?kode_kab=${kab}`);
   const harga = useApi<Resp<Harga>>(`/api/harga?kode=${kab}`);
   const coop = useApi<Resp<{
@@ -51,7 +67,7 @@ export function UsahaMbg() {
 
   const k = komp.data?.data;
   const segmen: Segmen[] = [];
-  if (k?.total_transaksi) {
+  if (k?.total_transaksi && k.produk.length) {
     const find = (key: string) => k.kelompok.find((x) => x.kelompok === key)!;
     const defs: [string, string, (p: Palet) => string][] = [
       ['program', 'var(--series-1)', (p) => p.series[0]],
@@ -100,36 +116,46 @@ export function UsahaMbg() {
   const ctPrev = coop.data?.data.ringkasan.at(-2);
   const ctProduk = [...(coop.data?.data.produk ?? [])].sort((a, b) => (b.terjual ?? 0) - (a.terjual ?? 0));
   const namaKomp = k.wilayah.level === 'nasional' ? 'nasional' : k.wilayah.nama;
+  const diWilayah = k.wilayah.level === 'nasional' ? 'secara nasional' : `di ${k.wilayah.nama}`;
+  const adaProduk = k.produk.length > 0;
 
   return (
     <>
       <PageHead
-        eyebrow="Lapis 2 · Gap · Usaha & celah MBG"
-        title={`Pangan segar dan protein baru ${persen(segar?.pct ?? null, 2)} dari transaksi koperasi`}
+        eyebrow="Gap · Usaha & celah MBG"
+        title={adaProduk ? `Pangan segar dan protein baru ${persen(segar?.pct ?? null, 2)} dari transaksi koperasi ${diWilayah}` : `Komposisi usaha koperasi ${diWilayah}`}
         lede="Komposisi usaha menunjukkan apa yang sudah dijual koperasi. Porsi pangan segar dan protein adalah indikator utama masuknya koperasi ke rantai pasok dapur MBG."
       />
+
+      <div className="toolbar" style={{ marginBottom: 18 }}>
+        <label htmlFor="pilih-wilayah" className="small" style={{ fontWeight: 600 }}>Wilayah</label>
+        <select id="pilih-wilayah" className="input" style={{ minWidth: 240, maxWidth: '100%', padding: '10px 16px', fontSize: 14 }} value={wilayah} onChange={(e) => pilihWilayah(e.target.value)}>
+          <option value="ID">Nasional</option>
+          {provinsi.map((p) => <option key={p.kode} value={p.kode}>{p.nama}</option>)}
+        </select>
+        <span className="xs muted">Komposisi usaha dan produk terlaris mengikuti pilihan ini.</span>
+      </div>
 
       <div className="split">
         <Card
           title={`Komposisi nilai transaksi menurut kelompok produk (${namaKomp})`}
           asal="Resmi"
-          action={
-            <select className="input" style={{ maxWidth: 220 }} value={kodeKomp} onChange={(e) => setKodeKomp(e.target.value)} aria-label="Pilih wilayah komposisi">
-              {grupKomp.map(([label, list]) => (
-                <optgroup key={label} label={label}>
-                  {list.map((w) => <option key={w.kode} value={w.kode}>{w.nama}</option>)}
-                </optgroup>
-              ))}
-            </select>
-          }
           foot={<Sumber nama={SIMKOPDES} url="https://simkopdes.go.id/pers/dashboard" tanggal={k.tanggal_data}><span>· 10 produk terlaris mencakup {persen(k.cakupan_pct)} nilai transaksi</span></Sumber>}
         >
-          <Chart build={build} height={48} ariaLabel="Batang bertumpuk 100% komposisi transaksi per kelompok produk" />
-          <div className="legend" style={{ marginTop: 8 }}>
-            {segmen.map((s) => (
-              <span key={s.key}><span className="swatch" style={{ background: s.css }} />{s.label} <span className="num">{persen(s.pct, s.pct < 1 ? 2 : 1)}</span></span>
-            ))}
-          </div>
+          {adaProduk ? (
+            <>
+              <Chart build={build} height={48} ariaLabel="Batang bertumpuk 100% komposisi transaksi per kelompok produk" />
+              <div className="legend" style={{ marginTop: 8 }}>
+                {segmen.map((s) => (
+                  <span key={s.key}><span className="swatch" style={{ background: s.css }} />{s.label} <span className="num">{persen(s.pct, s.pct < 1 ? 2 : 1)}</span></span>
+                ))}
+              </div>
+            </>
+          ) : (
+            <Placeholder label="10 PRODUK TERLARIS BELUM TERSEDIA">
+              Dasbor Simkopdes belum menampilkan produk terlaris untuk {k.wilayah.nama}, sehingga komposisi usahanya belum bisa dihitung.
+            </Placeholder>
+          )}
           <h3 className="card-title" style={{ marginTop: 18 }}>Tren porsi pangan segar dan protein</h3>
           {k.tren_segar_protein.cukup ? null : (
             <p className="small muted">
@@ -161,6 +187,7 @@ export function UsahaMbg() {
 
       <div className="grid grid-2 section">
         <Card title={`10 produk terlaris ${namaKomp}`} asal="Resmi" foot={<Sumber nama={SIMKOPDES} tanggal={k.tanggal_data} />}>
+          {!adaProduk ? <Placeholder label="BELUM TERSEDIA" /> : (
           <div className="table-wrap">
             <table className="data">
               <thead>
@@ -179,9 +206,10 @@ export function UsahaMbg() {
               </tbody>
             </table>
           </div>
+          )}
         </Card>
 
-        <Card title="Katalog B2B Coop Trade" asal="Resmi" foot={ct ? <Sumber nama="Coop Trade" url={ct.sumber_url} tanggal={ct.tanggal_data} /> : undefined}>
+        <Card title="Katalog B2B Coop Trade (nasional)" asal="Resmi" foot={ct ? <Sumber nama="Coop Trade" url={ct.sumber_url} tanggal={ct.tanggal_data} /> : undefined}>
           {ct ? (
             <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
               <div><div className="small ink-2">Produk terdaftar</div><div className="stat-big">{angka(ct.jumlah_produk)}</div></div>
@@ -214,23 +242,30 @@ export function UsahaMbg() {
         </Card>
       </div>
 
-      <section className="section">
+      <section className="section" aria-labelledby="judul-kab">
+        <div className="section-head" style={{ flexWrap: 'wrap', alignItems: 'center' }}>
+          <div>
+            <h2 className="section-title" id="judul-kab">Harga pangan & celah pasok · {namaKab}</h2>
+            <p className="small muted" style={{ margin: 0 }}>Pilih kab/kota{wilayah === 'ID' ? '' : ` di ${provinsi.find((p) => p.kode === wilayah)?.nama ?? ''}`}; kedua kartu di bawah mengikuti pilihan ini.</p>
+          </div>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <label htmlFor="pilih-kab" className="small" style={{ fontWeight: 600 }}>Kab/kota</label>
+            <select id="pilih-kab" className="input" style={{ minWidth: 220, maxWidth: '100%', padding: '10px 16px', fontSize: 14 }} value={kab} onChange={(e) => pilihKab(e.target.value)}>
+              {provinsi.filter((p) => kabDalamCakupan.some((x) => x.provinsi_kode === p.kode)).map((p) => (
+                <optgroup key={p.kode} label={p.nama}>
+                  {kabDalamCakupan.filter((x) => x.provinsi_kode === p.kode).map((x) => <option key={x.kode} value={x.kode}>{x.nama}</option>)}
+                </optgroup>
+              ))}
+            </select>
+          </div>
+        </div>
         <HargaCard harga={harga.data?.data ?? null} />
       </section>
 
       <section className="section">
         <Card
-          title="Celah pasok per kecamatan"
+          title={`Celah pasok per kecamatan · ${namaKab}`}
           asal={['Resmi', 'Estimasi']}
-          action={
-            <select className="input" style={{ maxWidth: 220 }} value={kab} onChange={(e) => setKab(e.target.value)} aria-label="Pilih kabupaten">
-              {kabGrup.map(([prov, list]) => (
-                <optgroup key={prov} label={prov}>
-                  {list.map((x) => <option key={x.kode} value={x.kode}>{x.nama}</option>)}
-                </optgroup>
-              ))}
-            </select>
-          }
           foot={<Sumber nama={SIMKOPDES} url="https://simkopdes.go.id/pers/dashboard" tanggal={c?.kecamatan?.tanggal_data ?? null}>
             {c?.kecamatan && <span>· data {c.kecamatan.cakupan.ada} dari {c.kecamatan.cakupan.total} kecamatan</span>}
           </Sumber>}
@@ -272,19 +307,25 @@ export function UsahaMbg() {
   );
 }
 
-const PERAN: Record<string, string> = { wilayah: '', provinsi: 'rata-rata provinsi', kota_survei_terdekat: 'kota survei terdekat' };
+const PERAN: Record<string, string> = { wilayah: 'kota survei', provinsi: 'rata-rata provinsi', kota_survei_terdekat: 'kota terdekat' };
 
 /** Harga 10 komoditas pokok MBG di pasar tradisional (PIHPS Bank Indonesia). */
 function HargaCard({ harga }: { harga: Harga | null }) {
   if (!harga) return null;
   return (
     <Card
-      title={`Harga pangan pokok di sekitar ${harga.wilayah.nama}`}
+      title={harga.wilayah.level === 'nasional'
+        ? 'Harga pangan pokok'
+        : `Harga pangan pokok ${harga.cakupan === 'pendekatan' ? 'di sekitar' : 'di'} ${harga.wilayah.nama}`}
       asal="Resmi"
       foot={<Sumber nama="PIHPS Nasional, Bank Indonesia" url="https://www.bi.go.id/hargapangan" tanggal={harga.tanggal_data}><span>· pasar tradisional, harga per kg</span></Sumber>}
     >
       {harga.catatan && <p className="small muted" style={{ marginTop: 0 }}>{harga.catatan}</p>}
-      {harga.kolom.length === 0 ? (
+      {harga.wilayah.level === 'nasional' ? (
+        <Placeholder label="PILIH PROVINSI ATAU KAB/KOTA">
+          PIHPS mencatat harga per provinsi dan kota survei, bukan rata-rata nasional. Pilih wilayah di bagian atas halaman untuk melihat harganya.
+        </Placeholder>
+      ) : harga.kolom.length === 0 ? (
         <Placeholder label="DATA HARGA BELUM TERSEDIA" />
       ) : (
         <div className="table-wrap">
@@ -295,7 +336,12 @@ function HargaCard({ harga }: { harga: Harga | null }) {
                 {harga.kolom.map((c) => (
                   <th key={c.kode} className="r" style={{ whiteSpace: 'normal', minWidth: 110 }}>
                     {c.nama}
-                    {PERAN[c.peran] && <div className="xs muted" style={{ fontWeight: 400 }}>{PERAN[c.peran]}{c.jarak_km !== undefined ? ` · ${c.jarak_km} km` : ''}</div>}
+                    {PERAN[c.peran] && (
+                      <div className="xs muted" style={{ fontWeight: 400 }}>
+                        {PERAN[c.peran]}{c.jarak_km !== undefined ? ` · ${c.jarak_km} km` : ''}
+                        {c.peran === 'kota_survei_terdekat' && c.provinsi ? <><br />{c.provinsi}</> : null}
+                      </div>
+                    )}
                   </th>
                 ))}
               </tr>
