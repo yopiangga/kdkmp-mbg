@@ -8,6 +8,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { RAW_DIR, SEED_DIR, today } from '../lib/paths.js';
 import { stripPII, toKoperasiRow } from '../lib/sanitize.js';
+import { BlockedError } from '../lib/http.js';
 import { normalisasiNama } from '../../../backend/src/lib/wilayahNama.js';
 
 export const API = 'https://simkopdes.go.id/api';
@@ -28,7 +29,13 @@ async function post(client, endpoint, slug) {
   const res = await client.request(urlFor(endpoint, slug), { method: 'POST', headers: { 'Content-Length': '0' } });
   if (res.status === 404) return null;
   if (!res.ok) throw new Error(`HTTP ${res.status} untuk ${endpoint} ${slug}`);
-  return res.json();
+  const body = await res.json();
+  // Sejak Nov 2026 API ini mengembalikan string terenkripsi alih-alih objek profil. Aturan 10.1: jangan didekripsi.
+  // Hentikan run (status diblokir) supaya profil lama tidak tertimpa sebagai "slug_tidak_ditemukan".
+  if (typeof body === 'string') {
+    throw new BlockedError(`Respons API microsite ${endpoint} terenkripsi; tidak didekripsi (aturan 10.1). Pakai impor manual.`, res.status);
+  }
+  return body;
 }
 
 const samaKecamatan = (a, b) => normalisasiNama(a).replace(/^KECAMATAN /, '') === normalisasiNama(b).replace(/^KECAMATAN /, '');

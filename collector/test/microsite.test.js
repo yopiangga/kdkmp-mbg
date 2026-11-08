@@ -131,3 +131,21 @@ test('berhenti bila banyak desa pertama tidak ditemukan (pola slug kabupaten ber
   assert.equal(r.rows.length, 4);
   assert.equal(client.calls.length, 8);
 });
+
+test('respons API terenkripsi (string, sejak Nov 2026): berhenti sebagai diblokir, tidak menulis baris apa pun', async () => {
+  const { BlockedError } = await import('../src/lib/http.js');
+  const client = {
+    calls: 0,
+    async request() {
+      this.calls += 1;
+      return new Response(JSON.stringify('H+YEFXmZv25CgWiKDDO7z5P76b4th1nt4Mkqb4FaUbNh4/LPqu=='), { status: 200, headers: { 'Content-Type': 'application/json' } });
+    },
+  };
+  const rows = [];
+  await assert.rejects(
+    ambilMicrosite(client, { seedDir: seedDir(), rawDir: tmp('kdkmp-raw-'), onRow: (r) => rows.push(...r) }),
+    (err) => err instanceof BlockedError && /terenkripsi/.test(err.message),
+  );
+  assert.equal(client.calls, 1);
+  assert.equal(rows.length, 0);
+});

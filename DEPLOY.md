@@ -1,6 +1,6 @@
 # Deploy ke VPS (Docker)
 
-## Instalasi yang berjalan (16 Okt 2026)
+## Instalasi yang berjalan (16 Okt 2026; dipasang ulang 8 Nov 2026 setelah server di-reset)
 
 | | |
 |---|---|
@@ -32,6 +32,8 @@ ssh root@<server> 'cd /opt/kdkmp-mbg && docker compose -f docker-compose.prod.ym
 Bila build gagal, container lama tetap berjalan; perbaiki lalu ulangi langkah 4.
 
 `data/db` di server adalah data hidup (diisi penjadwal), jadi jangan ditimpa dari mesin lokal.
+
+Pemasangan ulang di server kosong (seperti 8 Nov 2026): buat folder, rsync kode **dan** `data/db` + `data/raw` dari salinan terbaru, tulis `.env` baru (`ADMIN_TOKEN`/`SESSION_SECRET` dari `openssl rand -hex 32`, `APP_PORT=4310`), `docker compose ... up -d --build`, pasang dua berkas nginx di atas (listen 80), lalu `certbot --nginx -d kdkmp.kameranusantara.id -d api-kdkmp.kameranusantara.id --redirect`. Setelah itu jalankan collector berurutan (nasional → `provinsi --semua` → harga → cooptrade → `kabupaten --pilot` → `kabupaten --semua` → microsite) untuk mengejar data terbaru. Karena backup harian berada di server yang sama, salin `backups/` ke luar server secara berkala.
 
 Panduan memasang Observatorium KDKMP × MBG di VPS Linux dengan Docker, misalnya AWS Lightsail (yang sudah menjalankan n8n) atau Biznet Gio. Shared hosting tidak bisa dipakai karena collector butuh Chromium (Playwright).
 

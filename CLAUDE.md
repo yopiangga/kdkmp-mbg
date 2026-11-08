@@ -51,6 +51,7 @@ Catatan teknis penting:
 - Tabel kab/kota dan kecamatan berpaginasi 10 baris; `expandPagination` memilih ukuran halaman maksimum.
 - Kab pilot (microsite + halaman kecamatan mingguan), urut prioritas: Kebumen 33.05 (prioritas pemilik proyek), Gresik 35.25, Kota Surabaya 35.78, Kab. Bangka 19.01 — `PILOT_MICROSITE` di `collector/src/targets/microsite.js`.
 - Slug microsite: `<desa>-kecamatan-<kecamatan>` (pola nyata), cadangan satu kali `<desa>`. Respons 200 berisi profil di level atas (tanpa bungkus `data`), produk berupa array, penduduk di `village.total_population`.
+- **8 Nov 2026: API microsite kini mengembalikan string terenkripsi** (seperti `api.simkopdes.go.id`). Aturan 10.1 → tidak didekripsi; `post()` di `microsite.js` melempar `BlockedError` (run `diblokir`) supaya profil lama tidak tertimpa sebagai `slug_tidak_ditemukan`. Profil koperasi tetap versi 16 Okt 2026 (1.862 aktif) sampai ada jalur resmi atau impor manual.
 
 ### Sumber tambahan yang diperiksa (16 Okt 2026)
 
